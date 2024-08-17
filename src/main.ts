@@ -4,6 +4,7 @@ import { LogLevel, ValidationPipe } from '@nestjs/common';
 import { AppConfigService } from '@config/app/config.service';
 import * as cookieParser from 'cookie-parser';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import helmet from 'helmet';
 
 async function bootstrap() {
   const isProduction = process.env.APP_ENV === 'production';
@@ -19,6 +20,7 @@ async function bootstrap() {
   const appConfig: AppConfigService = app.get(AppConfigService);
 
   app.use(cookieParser());
+  app.use(helmet());
 
   app.useGlobalPipes(
     new ValidationPipe({
