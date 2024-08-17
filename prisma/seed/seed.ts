@@ -23,12 +23,7 @@ const main = async () => {
       id: uuidv7(),
       firstName: firstName,
       lastName: lastName,
-      email:
-        `${firstName.toLowerCase()}.${lastName.toLowerCase()}${randNum}@gmail.com`.replace(
-          /[^a-zA-Z0-9@.]/g,
-          '',
-        ),
-      password: copycat.password(randNum),
+      phoneNumber: copycat.phoneNumber(randNum, { prefixes: ["+628"], length: 13 }),
       rememberToken: null,
     };
   });

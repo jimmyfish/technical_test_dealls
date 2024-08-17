@@ -46,8 +46,7 @@ model User {
   lastName                    String?                 @map("last_name") @db.VarChar(100)
   gender                      Gender?
   dateOfBirth                 DateTime?               @map("date_of_birth") @db.Date
-  email                       String                  @unique @db.VarChar(255)
-  password                    String                  @db.VarChar(255)
+  phoneNumber                 String                  @unique @map("phone_number")
   rememberToken               String?                 @map("remember_token") @db.VarChar(255)
   planType                    PlanType                @default(free) @map("plan_type")
   lastLogin                   DateTime                @default(now()) @map("last_login") @db.Timestamptz()
@@ -110,13 +109,8 @@ model RecommendationHistory {
 model Order {
   id             String           @id @default(uuid()) @db.Uuid
   userId         String?          @map("user_id") @db.Uuid
-  packageId      String?          @map("package_id") @db.Uuid
   user           User?            @relation(fields: [userId], references: [id])
-  iccid          String?          @db.VarChar(100)
   isPaid         Boolean          @default(false) @map("is_paid")
-  isActivated    Boolean          @default(false) @map("is_activated")
-  smdpAddress    String?          @map("smdp_address") @db.VarChar(100)
-  activationCode String?          @map("activation_code") @db.VarChar(100)
   isActive       Boolean          @default(true) @map("is_active")
   orderStatus    OrderStatus      @default(pending) @map("order_status")
   expiredAt      DateTime         @default(now()) @map("expired_at")
@@ -126,7 +120,7 @@ model Order {
   PaymentHistory PaymentHistory[]
   Transaction    Transaction[]
 
-  @@index([id, userId, packageId, orderStatus])
+  @@index([id, userId, orderStatus])
   @@map("orders")
 }
 
@@ -136,7 +130,7 @@ model PaymentHistory {
   orderId          String?       @map("order_id") @db.Uuid
   paymentReference String        @map("payment_reference") @db.VarChar(100)
   paymentType      String        @map("payment_type") @db.VarChar(100)
-  settlementTime   DateTime?     @db.Timestamptz()
+  settlementTime   DateTime?     @map("settlement_time") @db.Timestamptz()
   statusMessage    String?       @map("status_message") @db.VarChar(100)
   signature        String?       @db.VarChar(100)
   grossAmount      Float         @default(0) @map("gross_amount")
@@ -157,11 +151,24 @@ model Transaction {
   paymentHistoryId String          @map("payment_history_id") @db.Uuid
   order            Order?          @relation(fields: [orderId], references: [id])
   paymentHistory   PaymentHistory  @relation(fields: [paymentHistoryId], references: [id])
-  transactionType  TransactionType
+  transactionType  TransactionType @map("transaction_type")
   createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt        DateTime?       @map("updated_at") @db.Timestamptz()
   deletedAt        DateTime?       @map("deleted_at") @db.Timestamptz()
 
   @@index([id, orderId, paymentHistoryId])
   @@map("transaction")
+}
+
+model OtpList {
+  id        String    @id @default(uuid()) @db.Uuid
+  key       String    @db.VarChar(20)
+  value     String    @db.VarChar(255)
+  expiredAt DateTime  @db.Timestamptz()
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime? @map("updated_at") @db.Timestamptz()
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz()
+
+  @@index([id, key])
+  @@map("otp_lists")
 }
