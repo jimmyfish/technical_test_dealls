@@ -1,0 +1,167 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Gender {
+  male
+  female
+}
+
+enum PlanType {
+  free
+  premium
+}
+
+enum Decision {
+  left
+  right
+}
+
+enum OrderStatus {
+  pending
+  complete
+  failed
+  expired
+}
+
+enum TransactionType {
+  settle
+  refund
+}
+
+model User {
+  id                          String                  @id @default(uuid()) @db.Uuid
+  firstName                   String                  @map("first_name") @db.VarChar(100)
+  lastName                    String?                 @map("last_name") @db.VarChar(100)
+  gender                      Gender?
+  dateOfBirth                 DateTime?               @map("date_of_birth") @db.Date
+  email                       String                  @unique @db.VarChar(255)
+  password                    String                  @db.VarChar(255)
+  rememberToken               String?                 @map("remember_token") @db.VarChar(255)
+  planType                    PlanType                @default(free) @map("plan_type")
+  lastLogin                   DateTime                @default(now()) @map("last_login") @db.Timestamptz()
+  createdAt                   DateTime                @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt                   DateTime?               @map("updated_at") @db.Timestamptz()
+  deletedAt                   DateTime?               @map("deleted_at") @db.Timestamptz()
+  UserPreferences             UserPreference[]
+  MatchesFrom                 Match[]                 @relation("MatchesFrom")
+  MatchesTo                   Match[]                 @relation("MatchesTo")
+  RecommendationHistoriesUser RecommendationHistory[] @relation("RecommendationHistoriesUser")
+  RecommendationHistoriesto   RecommendationHistory[] @relation("RecommendationHistoriesTo")
+  Order                       Order[]
+
+  @@index([id, firstName, gender])
+  @@map("users")
+}
+
+model UserPreference {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  user      User?     @relation(fields: [userId], references: [id])
+  radius    Float     @default(3)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime? @map("updated_at") @db.Timestamptz()
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz()
+
+  @@index([id, userId])
+  @@map("user_preferences")
+}
+
+model Match {
+  id         String    @id @default(uuid()) @db.Uuid
+  fromUserId String    @map("from_user_id") @db.Uuid
+  toUserId   String    @map("to_user_id") @db.Uuid
+  fromUser   User?     @relation("MatchesFrom", fields: [fromUserId], references: [id])
+  toUser     User?     @relation("MatchesTo", fields: [toUserId], references: [id])
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt  DateTime? @map("updated_at") @db.Timestamptz()
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz()
+
+  @@index([id, fromUserId, toUserId])
+  @@map("matches")
+}
+
+model RecommendationHistory {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  toUserId  String    @map("to_user_id") @db.Uuid
+  user      User?     @relation("RecommendationHistoriesUser", fields: [userId], references: [id])
+  toUser    User?     @relation("RecommendationHistoriesTo", fields: [toUserId], references: [id])
+  decision  Decision
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime? @map("updated_at") @db.Timestamptz()
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz()
+
+  @@index([id, userId, toUserId])
+  @@map("recommendation_histories")
+}
+
+model Order {
+  id             String           @id @default(uuid()) @db.Uuid
+  userId         String?          @map("user_id") @db.Uuid
+  packageId      String?          @map("package_id") @db.Uuid
+  user           User?            @relation(fields: [userId], references: [id])
+  iccid          String?          @db.VarChar(100)
+  isPaid         Boolean          @default(false) @map("is_paid")
+  isActivated    Boolean          @default(false) @map("is_activated")
+  smdpAddress    String?          @map("smdp_address") @db.VarChar(100)
+  activationCode String?          @map("activation_code") @db.VarChar(100)
+  isActive       Boolean          @default(true) @map("is_active")
+  orderStatus    OrderStatus      @default(pending) @map("order_status")
+  expiredAt      DateTime         @default(now()) @map("expired_at")
+  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt      DateTime?        @map("updated_at") @db.Timestamptz()
+  deletedAt      DateTime?        @map("deleted_at") @db.Timestamptz()
+  PaymentHistory PaymentHistory[]
+  Transaction    Transaction[]
+
+  @@index([id, userId, packageId, orderStatus])
+  @@map("orders")
+}
+
+model PaymentHistory {
+  id               String        @id @default(uuid()) @db.Uuid
+  order            Order?        @relation(fields: [orderId], references: [id])
+  orderId          String?       @map("order_id") @db.Uuid
+  paymentReference String        @map("payment_reference") @db.VarChar(100)
+  paymentType      String        @map("payment_type") @db.VarChar(100)
+  settlementTime   DateTime?     @db.Timestamptz()
+  statusMessage    String?       @map("status_message") @db.VarChar(100)
+  signature        String?       @db.VarChar(100)
+  grossAmount      Float         @default(0) @map("gross_amount")
+  currency         String?       @db.VarChar(10)
+  metadata         Json?         @db.Json
+  createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt        DateTime?     @map("updated_at") @db.Timestamptz()
+  deletedAt        DateTime?     @map("deleted_at") @db.Timestamptz()
+  Transaction      Transaction[]
+
+  @@index([id, orderId, paymentReference, paymentType])
+  @@map("payment_histories")
+}
+
+model Transaction {
+  id               String          @id @default(uuid()) @db.Uuid
+  orderId          String          @map("order_id") @db.Uuid
+  paymentHistoryId String          @map("payment_history_id") @db.Uuid
+  order            Order?          @relation(fields: [orderId], references: [id])
+  paymentHistory   PaymentHistory  @relation(fields: [paymentHistoryId], references: [id])
+  transactionType  TransactionType
+  createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt        DateTime?       @map("updated_at") @db.Timestamptz()
+  deletedAt        DateTime?       @map("deleted_at") @db.Timestamptz()
+
+  @@index([id, orderId, paymentHistoryId])
+  @@map("transaction")
+}
