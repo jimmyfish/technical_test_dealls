@@ -5,6 +5,10 @@ import { AppConfigService } from '@config/app/config.service';
 import * as cookieParser from 'cookie-parser';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
+import {
+  HttpExceptionFilter,
+  ZodFilter,
+} from '@common/filters/http-exception.filter';
 
 async function bootstrap() {
   const isProduction = process.env.APP_ENV === 'production';
@@ -27,6 +31,9 @@ async function bootstrap() {
       transform: true,
     }),
   );
+
+  app.useGlobalFilters(new HttpExceptionFilter());
+  // app.useGlobalFilters(new ZodFilter());
 
   app.setGlobalPrefix('api');
 
