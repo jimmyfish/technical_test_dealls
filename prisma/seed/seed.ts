@@ -25,10 +25,13 @@ const main = async () => {
       lastName: lastName,
       phoneNumber: copycat.phoneNumber(randNum, { prefixes: ["+628"], length: 13 }),
       rememberToken: null,
+      deletedAt: null,
     };
   });
 
   await seed.user(userData);
+
+  await seed.order(x => x(10));
 
   // Type completion not working? You might want to reload your TypeScript Server to pick up the changes
 
