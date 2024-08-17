@@ -19,7 +19,7 @@ export interface FailureResponse {
   message: string;
 }
 
-export const createSuccessResponse = <T = object | object[]>(
+export const createSuccessResponse = <T = any>(
   data: T,
   meta?: {
     pagination?: {
