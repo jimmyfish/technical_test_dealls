@@ -6,15 +6,16 @@ export class PrismaService
   extends PrismaClient
   implements OnModuleInit, OnModuleDestroy
 {
-  constructor(private prismaClient: PrismaClient) {
+  constructor() {
     super({
       log: ['query', 'info', 'warn', 'error'],
     });
   }
 
-  async OnModuleInit(): Promise<void> {
+  async onModuleInit() {
     await this.$connect();
-    this.prismaClient.$use(async (params, next) => {
+
+    this.$use(async (params, next) => {
       if (['findMany', 'findUnique', 'findFirst'].includes(params.action)) {
         if (params.args) {
           params.args.where = {
@@ -29,8 +30,6 @@ export class PrismaService
   }
 
   async onModuleDestroy() {
-    await this.prismaClient.$disconnect();
+    await this.$disconnect();
   }
-
-  onModuleInit(): any {}
 }
