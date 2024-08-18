@@ -105,7 +105,7 @@ SNAPLET_ENVIRONMENT=development
    ```
 
 ## Directory Structure
-
+```
 .   
 ├── prisma   
 │ ├── migrations   
@@ -128,6 +128,6 @@ SNAPLET_ENVIRONMENT=development
 │         └── user // contain user module file   
 └── test   
 
-
+```
 
 
