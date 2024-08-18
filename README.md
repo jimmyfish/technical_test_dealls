@@ -104,4 +104,30 @@ SNAPLET_ENVIRONMENT=development
    npm run test
    ```
 
+## Directory Structure
+
+.
+├── prisma
+│ ├── migrations
+│ │ └── 20240817175226_init // contain migration file
+│ └── seed
+├── src
+│ ├── common
+│ │ ├── auth // auth related file
+│ │ ├── constants // contains constants
+│ │ ├── filters
+│ │ ├── helpers // contains helper file
+│ │ └── zod
+│ ├── config
+│ │ ├── app // configuration of app
+│ │ └── database
+│ │     └── prisma // configuration of database
+│ └── modules
+│     └── v1
+│         ├── auth // contain auth module file
+│         └── user // contain user module file
+└── test
+
+
+
 
