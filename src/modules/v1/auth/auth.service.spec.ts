@@ -3,10 +3,11 @@ import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 // import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../../config/database/prisma/config.service';
-import { LoginDto, VerifyOTPDto } from './auth.dto';
+import { LoginDto, RegisterDto, VerifyOTPDto } from './auth.dto';
 import { UserService } from '../user/user.service';
 import { UserModule } from '../user/user.module';
 import { uniformPhoneNumber } from '../../../common/helpers/localization.helper';
+import { copycat } from '@snaplet/copycat';
 
 describe('AuthService', () => {
   let authService: AuthService;
@@ -68,6 +69,24 @@ describe('AuthService', () => {
     expect(serviceReturn).toEqual({
       access_token: 'signed-token',
       userId: user.id,
+    });
+  });
+
+  it('should register by phone', async () => {
+    const randNum = Math.floor(Math.random() * 1000);
+    const phone = copycat.phoneNumber(randNum, {
+      prefixes: ['+628'],
+      length: 13,
+    });
+    const body: RegisterDto = {
+      phoneNumber: await uniformPhoneNumber(phone),
+      firstName: copycat.firstName(randNum),
+    };
+
+    const serviceReturn = await authService.registerByPhone(body);
+
+    expect(serviceReturn).toEqual({
+      success: true,
     });
   });
 });
