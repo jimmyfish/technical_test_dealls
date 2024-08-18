@@ -106,7 +106,7 @@ SNAPLET_ENVIRONMENT=development
 
 ## Directory Structure
 
-.
+.   
 ├── prisma   
 │ ├── migrations   
 │ │ └── 20240817175226_init // contain migration file   
