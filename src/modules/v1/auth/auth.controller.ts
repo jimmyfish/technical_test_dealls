@@ -4,8 +4,10 @@ import { createSuccessResponse } from '@common/helpers/response.helper';
 import { ZodValidationPipe } from '@common/zod/zod.pipe';
 import {
   LoginDto,
-  LoginSchema,
+  RegisterDto,
   VerifyOTPDto,
+  LoginSchema,
+  RegisterSchema,
   VerifyOTPSchema,
 } from '@modules/v1/auth/auth.dto';
 
@@ -25,5 +27,12 @@ export class AuthController {
     @Body(new ZodValidationPipe(VerifyOTPSchema)) body: VerifyOTPDto,
   ) {
     return createSuccessResponse(await this.authService.verifyOtp(body));
+  }
+
+  @Post('register')
+  async register(
+    @Body(new ZodValidationPipe(RegisterSchema)) body: RegisterDto,
+  ) {
+    return createSuccessResponse(await this.authService.registerByPhone(body));
   }
 }

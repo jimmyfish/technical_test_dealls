@@ -113,7 +113,7 @@ model Order {
   isPaid         Boolean          @default(false) @map("is_paid")
   isActive       Boolean          @default(true) @map("is_active")
   orderStatus    OrderStatus      @default(pending) @map("order_status")
-  expiredAt      DateTime         @default(now()) @map("expired_at")
+  expiredAt      DateTime         @default(now()) @map("expired_at") @db.Timestamptz()
   createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt      DateTime?        @map("updated_at") @db.Timestamptz()
   deletedAt      DateTime?        @map("deleted_at") @db.Timestamptz()
@@ -163,8 +163,9 @@ model Transaction {
 model OtpList {
   id        String    @id @default(uuid()) @db.Uuid
   key       String    @db.VarChar(20)
-  value     String    @db.VarChar(255)
-  expiredAt DateTime  @db.Timestamptz()
+  otpData     String    @db.VarChar(255) @map("otp_data")
+  expiredAt DateTime  @db.Timestamptz() @map("expired_at")
+  attempts Int @default(3)
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt DateTime? @map("updated_at") @db.Timestamptz()
   deletedAt DateTime? @map("deleted_at") @db.Timestamptz()

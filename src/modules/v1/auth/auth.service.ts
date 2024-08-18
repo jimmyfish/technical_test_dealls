@@ -3,10 +3,12 @@ import { PrismaService } from '@config/database/prisma/config.service';
 import { uniformPhoneNumber } from '@common/helpers/localization.helper';
 import { createBadRequestResponse } from '@common/helpers/response.helper';
 import { ERROR } from '@common/constants/error-message';
-import { LoginDto, VerifyOTPDto } from '@modules/v1/auth/auth.dto';
+import { LoginDto, RegisterDto, VerifyOTPDto } from '@modules/v1/auth/auth.dto';
 import { generateOtp } from '@common/helpers/otp.helper';
 import * as moment from 'moment';
 import { JwtService } from '@nestjs/jwt';
+import { v7 as uuidv7 } from 'uuid';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -27,6 +29,11 @@ export class AuthService {
 
     if (!user) return createBadRequestResponse(ERROR.USER_NOT_FOUND);
 
+    await this.prisma.otpList.updateMany({
+      where: { key: phoneNumber },
+      data: { deletedAt: moment().toDate() },
+    });
+
     const otp = await generateOtp();
 
     await this.prisma.otpList.create({
@@ -37,7 +44,7 @@ export class AuthService {
       },
     });
 
-    return user;
+    return { success: true };
   }
 
   async verifyOtp(body: VerifyOTPDto) {
@@ -90,5 +97,34 @@ export class AuthService {
       userId: user.id,
       access_token: this.jwtService.sign({ userId: user.id }),
     };
+  }
+
+  async registerByPhone(body: RegisterDto) {
+    let { phoneNumber } = body;
+    const { firstName, lastName, gender } = body;
+
+    phoneNumber = await uniformPhoneNumber(phoneNumber);
+    const duplicatedPhoneNumber = await this.prisma.user.findUnique({
+      where: { phoneNumber },
+    });
+
+    if (duplicatedPhoneNumber) {
+      return createBadRequestResponse(ERROR.USER_DUPLICATE_PHONE);
+    }
+
+    const userData: Prisma.UserCreateInput = {
+      id: uuidv7(),
+      firstName,
+      lastName: lastName ? lastName : null,
+      phoneNumber,
+      gender,
+      planType: 'free',
+      lastLogin: moment().toDate(),
+      deletedAt: null,
+    };
+
+    await this.prisma.user.create({ data: userData });
+
+    return { success: true };
   }
 }
