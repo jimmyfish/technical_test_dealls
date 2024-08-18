@@ -1,49 +1,107 @@
-## Description
+# Technical Test
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+This project is built using NestJS, Prisma, and Snaplet. It provides a robust backend API with a PostgreSQL database.
+
+## Table of Contents
+
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Database Migrations](#database-migrations)
+- [Development](#development)
+- [Staging/Production](#stagingproduction)
+- [Testing](#testing)
+- [License](#license)
 
 ## Installation
 
-```bash
-$ npm install
+1. **Clone the repository:**
+
+   ```bash
+   $ git clone git@github.com:jimmyfish/technical_test_dealls.git
+   $ cd technical_test_dealls
+   ```
+
+2. **Install dependencies:**
+
+   ```bash
+   $ npm install
+   ```
+
+3. **Set up environment variables:**
+
+   Create a `.env` file in the root directory and add the necessary environment variables. Refer to `.env.example` for required variables.
+
+## Configuration
+
+- **NestJS**: The main framework for building the API.
+- **Prisma**: ORM for interacting with the PostgreSQL database.
+- **Snaplet**: Used for generating and managing seed data.
+
+### Example `.env` configuration:
+
+```env
+DATABASE_URL=postgresql://user:password@localhost:5432/dbname
+SNAPLET_ENVIRONMENT=development
 ```
 
-## Running the app
+## Database Migrations
 
-```bash
-# development
-$ npm run start
+### Running Migrations
 
-# watch mode
-$ npm run start:dev
+1. **Apply existing migrations:**
 
-# production mode
-$ npm run start:prod
-```
+   ```bash
+   $ npx prisma migrate deploy
+   ```
 
-## Test
+## Development
 
-```bash
-# unit tests
-$ npm run test
+1. **Sync Snaplet seed:**
 
-# e2e tests
-$ npm run test:e2e
+   ```bash
+   $ npx @snaplet/seed sync
+   ```
 
-# test coverage
-$ npm run test:cov
-```
+2. **Apply Snaplet seed**
 
-## Support
+   ```bash
+   $ npx tsx prisma/seed/seed.ts
+   ```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+3. **Run the development server:**
 
-## Stay in touch
+   ```bash
+   $ npm run start:dev
+   ```
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## Staging/Production
 
-## License
+1. **Apply migrations:**
 
-Nest is [MIT licensed](LICENSE).
+   Ensure that migrations are applied before deploying:
+
+   ```bash
+   npx prisma migrate deploy
+   ```
+
+2. **Run the server in production mode:**
+
+   ```bash
+   npm run start:prod
+   ```
+
+3. **Apply Snaplet snapshot for production:**
+
+   ```bash
+   npx snaplet snapshot apply --environment=production
+   ```
+
+## Testing
+
+1. **Run tests:**
+
+   ```bash
+   npm run test
+   ```
+
+
