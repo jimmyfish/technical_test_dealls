@@ -78,8 +78,10 @@ describe('AuthService', () => {
       prefixes: ['+628'],
       length: 13,
     });
+    const uniformedPhone = await uniformPhoneNumber(phone);
+
     const body: RegisterDto = {
-      phoneNumber: await uniformPhoneNumber(phone),
+      phoneNumber: uniformedPhone,
       firstName: copycat.firstName(randNum),
     };
 
@@ -88,5 +90,11 @@ describe('AuthService', () => {
     expect(serviceReturn).toEqual({
       success: true,
     });
+
+    const user = await prismaService.user.count({
+      where: { phoneNumber: uniformedPhone }
+    });
+
+    expect(user).toBe(1);
   });
 });
