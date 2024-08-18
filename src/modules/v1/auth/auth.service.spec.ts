@@ -8,13 +8,16 @@ import { UserService } from '../user/user.service';
 import { UserModule } from '../user/user.module';
 import { uniformPhoneNumber } from '../../../common/helpers/localization.helper';
 import { copycat } from '@snaplet/copycat';
+import { phoneNumber } from '@snaplet/copycat/dist/phoneNumber';
+import { BadRequestException } from '@nestjs/common';
+import { createBadRequestResponse } from '../../../common/helpers/response.helper';
 
 describe('AuthService', () => {
   let authService: AuthService;
   let jwtService: JwtService;
   let prismaService: PrismaService;
 
-  const phoneNumber: string = '08990314474';
+  let phoneNumber: string;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -40,17 +43,31 @@ describe('AuthService', () => {
     authService = module.get<AuthService>(AuthService);
     jwtService = module.get<JwtService>(JwtService);
     prismaService = module.get<PrismaService>(PrismaService);
+
+    const firstUser = await prismaService.user.findFirst({
+      select: { phoneNumber: true },
+    });
+
+    phoneNumber = firstUser.phoneNumber;
   });
 
   it('should be defined', () => expect(authService).toBeDefined());
 
   it('should login with phone number', async () => {
-    const body: LoginDto = { phoneNumber: '08990314474' };
+    const body: LoginDto = { phoneNumber };
     const serviceReturn = await authService.loginByPhoneNumber(body);
 
     expect(serviceReturn).toEqual({
       success: true,
     });
+  });
+
+  it('should error with phone number not found', async () => {
+    const body: LoginDto = { phoneNumber: '089903144544' };
+
+    await expect(authService.loginByPhoneNumber(body)).rejects.toThrow(
+      BadRequestException,
+    );
   });
 
   it('should verify otp', async () => {
@@ -70,6 +87,14 @@ describe('AuthService', () => {
       access_token: 'signed-token',
       userId: user.id,
     });
+  });
+
+  it('should not found otp', async () => {
+    const body: VerifyOTPDto = { phoneNumber: '089903144544', otp: '898918' };
+
+    await expect(authService.verifyOtp(body)).rejects.toThrow(
+      BadRequestException,
+    );
   });
 
   it('should register by phone', async () => {
@@ -92,9 +117,21 @@ describe('AuthService', () => {
     });
 
     const user = await prismaService.user.count({
-      where: { phoneNumber: uniformedPhone }
+      where: { phoneNumber: uniformedPhone },
     });
 
     expect(user).toBe(1);
+  });
+
+  it('should already register', async () => {
+    const randNum = Math.floor(Math.random() * 1000);
+    const body: RegisterDto = {
+      phoneNumber,
+      firstName: copycat.firstName(randNum),
+    };
+    
+    await expect(authService.registerByPhone(body)).rejects.toThrow(
+      BadRequestException,
+    );
   });
 });

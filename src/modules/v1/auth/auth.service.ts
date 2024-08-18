@@ -1,7 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '@config/database/prisma/config.service';
 import { uniformPhoneNumber } from '@common/helpers/localization.helper';
-import { createBadRequestResponse } from '@common/helpers/response.helper';
 import { ERROR } from '@common/constants/error-message';
 import { LoginDto, RegisterDto, VerifyOTPDto } from '@modules/v1/auth/auth.dto';
 import { generateOtp } from '@common/helpers/otp.helper';
@@ -27,7 +26,7 @@ export class AuthService {
       },
     });
 
-    if (!user) return createBadRequestResponse(ERROR.USER_NOT_FOUND);
+    if (!user) throw new BadRequestException('User not found.');
 
     await this.prisma.otpList.updateMany({
       where: { key: phoneNumber },
@@ -59,7 +58,8 @@ export class AuthService {
       },
     });
 
-    if (!otpData) return createBadRequestResponse(ERROR.OTP_DATA_NOT_FOUND);
+    if (!otpData)
+      throw new BadRequestException(ERROR.OTP_DATA_NOT_FOUND.message);
 
     if (otpData.otpData !== otp) {
       if (otpData.attempts <= 1) {
@@ -74,7 +74,7 @@ export class AuthService {
           },
         });
 
-        return createBadRequestResponse(ERROR.OTP_EXHAUSTED);
+        throw new BadRequestException(ERROR.OTP_EXHAUSTED);
       }
 
       await this.prisma.otpList.update({
@@ -86,7 +86,7 @@ export class AuthService {
         },
       });
 
-      return createBadRequestResponse(ERROR.OTP_INCORRECT);
+      throw new BadRequestException(ERROR.OTP_INCORRECT);
     }
 
     const user = await this.prisma.user.findUnique({
@@ -109,7 +109,7 @@ export class AuthService {
     });
 
     if (duplicatedPhoneNumber) {
-      return createBadRequestResponse(ERROR.USER_DUPLICATE_PHONE);
+      throw new BadRequestException(ERROR.USER_DUPLICATE_PHONE);
     }
 
     const userData: Prisma.UserCreateInput = {
